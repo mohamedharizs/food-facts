@@ -4,29 +4,34 @@ import FoodList from './components/FoodList'
 import './App.css'
 
 function App() {
-  // State for storing search results and loading status
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [hasSearched, setHasSearched] = useState(false)
 
-  // Handle search query from SearchBar component
   const handleSearch = async (query) => {
     setLoading(true)
+    setError(null)
+    setHasSearched(true)
+    setResults([])
 
     try {
-      // Fetch data from Open Food Facts API
       const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`
       const response = await fetch(url)
-      const data = await response.json()
 
-      // Filter out products without names to avoid empty cards
-      const filteredProducts = data.products.filter(
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+
+      const data = await response.json()
+      const filteredProducts = (data.products || []).filter(
         (product) => product.product_name && product.product_name.trim() !== ''
       )
 
       setResults(filteredProducts)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      setResults([])
+    } catch (fetchError) {
+      console.error('Error fetching data:', fetchError)
+      setError('Unable to load food data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -36,22 +41,28 @@ function App() {
     <div className="app-container">
       <header>
         <h1>🥗 FoodFacts</h1>
-        <p>Discover nutritional information about food items</p>
+        <p>Search any food name and see nutrition details from Open Food Facts.</p>
       </header>
 
-      {/* Search bar component */}
       <SearchBar onSearch={handleSearch} />
 
-      {/* Loading state */}
+      {error && <p className="status-message error">{error}</p>}
       {loading && <p className="status-message loading">Loading...</p>}
 
-      {/* Initial state - no search yet */}
-      {!loading && results.length === 0 && (
+      {!loading && !error && !hasSearched && (
         <p className="status-message">Search for a food item to see its nutrition info.</p>
       )}
 
-      {/* Display search results */}
-      {!loading && results.length > 0 && <FoodList products={results} />}
+      {!loading && !error && hasSearched && results.length === 0 && (
+        <p className="status-message no-results">No food items found. Try another search.</p>
+      )}
+
+      {!loading && !error && results.length > 0 && (
+        <>
+          <p className="results-summary">Found {results.length} food items.</p>
+          <FoodList products={results} />
+        </>
+      )}
     </div>
   )
 }

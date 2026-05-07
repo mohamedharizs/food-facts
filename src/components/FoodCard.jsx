@@ -1,43 +1,52 @@
 function FoodCard({ product }) {
-  // Destructure the product data
-  const { product_name, brands, nutriments, image_small_url } = product
+  const {
+    product_name,
+    brands,
+    nutriments,
+    image_small_url,
+    code,
+    quantity,
+  } = product
+
+  const calories = nutriments?.['energy-kcal_100g'] ?? 'N/A'
+  const protein = nutriments?.['proteins_100g'] ?? 'N/A'
+  const carbs = nutriments?.['carbohydrates_100g'] ?? 'N/A'
+  const fat = nutriments?.['fat_100g'] ?? 'N/A'
 
   return (
-    <div className="food-card">
-      {/* Display product image if available, otherwise show fallback */}
+    <article className="food-card">
       {image_small_url ? (
         <img
           src={image_small_url}
-          alt={product_name}
+          alt={product_name || 'Food item image'}
           className="food-image"
         />
       ) : (
-        <div className="food-image-placeholder">No Image</div>
+        <div className="food-image-placeholder">No image available</div>
       )}
 
-      {/* Product name */}
-      <h2 className="product-name">{product_name || 'Unknown Product'}</h2>
+      <div className="food-card-content">
+        <h2 className="product-name">{product_name || 'Unknown Product'}</h2>
+        <p className="product-brand">{brands ? `Brand: ${brands}` : 'Brand: Unknown'}</p>
+        {quantity && <p className="product-quantity">Size: {quantity}</p>}
+        {code && <p className="product-code">Barcode: {code}</p>}
 
-      {/* Brand information */}
-      {brands && <p className="product-brand">Brand: {brands}</p>}
-
-      {/* Nutrition information with optional chaining to avoid crashes */}
-      <div className="nutrition-info">
-        <p>
-          <strong>Calories:</strong> {nutriments?.['energy-kcal_100g'] || 'N/A'}{' '}
-          kcal
-        </p>
-        <p>
-          <strong>Protein:</strong> {nutriments?.['proteins_100g'] || 'N/A'} g
-        </p>
-        <p>
-          <strong>Carbs:</strong> {nutriments?.['carbohydrates_100g'] || 'N/A'} g
-        </p>
-        <p>
-          <strong>Fat:</strong> {nutriments?.['fat_100g'] || 'N/A'} g
-        </p>
+        <div className="nutrition-info">
+          <p>
+            <strong>Calories:</strong> {calories} kcal
+          </p>
+          <p>
+            <strong>Protein:</strong> {protein} g
+          </p>
+          <p>
+            <strong>Carbs:</strong> {carbs} g
+          </p>
+          <p>
+            <strong>Fat:</strong> {fat} g
+          </p>
+        </div>
       </div>
-    </div>
+    </article>
   )
 }
 

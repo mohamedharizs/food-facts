@@ -1,35 +1,32 @@
 import { useState } from 'react'
 
 function SearchBar({ onSearch }) {
-  // State for the search input field
   const [query, setQuery] = useState('')
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault()
+    const trimmedQuery = query.trim()
 
-    // Only search if query is not empty
-    if (query.trim()) {
-      onSearch(query)
-      setQuery('') // Clear input after search
+    if (!trimmedQuery) {
+      return
     }
-  }
 
-  // Handle input change - this makes it a controlled component
-  const handleChange = (e) => {
-    setQuery(e.target.value)
+    onSearch(trimmedQuery)
+    setQuery('')
   }
 
   return (
     <form onSubmit={handleSubmit} className="search-bar">
       <input
-        type="text"
-        placeholder="Search for a food (e.g., apple, bread, milk)..."
+        type="search"
+        aria-label="Search food items"
+        placeholder="Search for a food (e.g. banana, oats, milk)"
         value={query}
-        onChange={handleChange}
+        onChange={(e) => setQuery(e.target.value)}
         className="search-input"
+        autoComplete="off"
       />
-      <button type="submit" className="search-button">
+      <button type="submit" className="search-button" disabled={!query.trim()}>
         Search
       </button>
     </form>
