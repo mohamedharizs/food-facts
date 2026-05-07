@@ -1,68 +1,39 @@
-import { useState } from 'react'
-import SearchBar from './components/SearchBar'
-import FoodList from './components/FoodList'
+import { useReducer } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import NavBar from './components/NavBar'
+import HomePage from './pages/HomePage'
+import DetailPage from './pages/DetailPage'
+import SavedPage from './pages/SavedPage'
 import './App.css'
 
-function App() {
-  const [results, setResults] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [hasSearched, setHasSearched] = useState(false)
-
-  const handleSearch = async (query) => {
-    setLoading(true)
-    setError(null)
-    setHasSearched(true)
-    setResults([])
-
-    try {
-      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`)
+function savedReducer(state, action) {
+  switch (action.type) {
+    case 'ADD':
+      if (!action.product || state.some((item) => item.code === action.product.code)) {
+        return state
       }
-
-      const data = await response.json()
-      const filteredProducts = (data.products || []).filter(
-        (product) => product.product_name && product.product_name.trim() !== ''
-      )
-
-      setResults(filteredProducts)
-    } catch (fetchError) {
-      console.error('Error fetching data:', fetchError)
-      setError('Unable to load food data. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+      return [...state, action.product]
+    case 'REMOVE':
+      return state.filter((item) => item.code !== action.code)
+    default:
+      return state
   }
+}
+
+function App() {
+  const [saved, dispatch] = useReducer(savedReducer, [])
 
   return (
-    <div className="app-container">
-      <header>
-        <h1>🥗 FoodFacts</h1>
-        <p>Search any food name and see nutrition details from Open Food Facts.</p>
-      </header>
+    <div className="app-shell">
+      <NavBar savedCount={saved.length} />
 
-      <SearchBar onSearch={handleSearch} />
-
-      {error && <p className="status-message error">{error}</p>}
-      {loading && <p className="status-message loading">Loading...</p>}
-
-      {!loading && !error && !hasSearched && (
-        <p className="status-message">Search for a food item to see its nutrition info.</p>
-      )}
-
-      {!loading && !error && hasSearched && results.length === 0 && (
-        <p className="status-message no-results">No food items found. Try another search.</p>
-      )}
-
-      {!loading && !error && results.length > 0 && (
-        <>
-          <p className="results-summary">Found {results.length} food items.</p>
-          <FoodList products={results} />
-        </>
-      )}
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/product/:barcode" element={<DetailPage saved={saved} dispatch={dispatch} />} />
+          <Route path="/saved" element={<SavedPage saved={saved} dispatch={dispatch} />} />
+        </Routes>
+      </main>
     </div>
   )
 }

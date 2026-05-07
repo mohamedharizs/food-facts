@@ -136,6 +136,41 @@ header p {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.food-card-clickable {
+  cursor: pointer;
+}
+
+.food-card-clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.error-message {
+  max-width: 720px;
+  margin: 0 auto 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: #fdecea;
+  color: #c0392b;
+  border: 1px solid #f5c6cb;
+}
+
+.validation-error {
+  width: 100%;
+  margin-top: 12px;
+  color: #c0392b;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+main {
+  padding-bottom: 40px;
+}
+
 .food-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
