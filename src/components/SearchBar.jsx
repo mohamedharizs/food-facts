@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Box, TextField, Button, FormHelperText } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState('')
@@ -33,21 +35,35 @@ function SearchBar({ onSearch }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="search-bar">
-      <input
-        type="search"
-        aria-label="Search food items"
-        placeholder="Search for a food (e.g. banana, oats, milk)"
-        value={query}
-        onChange={handleChange}
-        className="search-input"
-        autoComplete="off"
-      />
-      <button type="submit" className="search-button" disabled={!query.trim()}>
-        Search
-      </button>
-      {validationError && <p className="validation-error">{validationError}</p>}
-    </form>
+    <Box component="form" onSubmit={handleSubmit} sx={{ mb: 4 }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
+        <TextField
+          fullWidth
+          type="search"
+          placeholder="Search for a food (e.g. banana, oats, milk)"
+          value={query}
+          onChange={handleChange}
+          autoComplete="off"
+          variant="outlined"
+          error={!!validationError}
+          size="small"
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={!query.trim()}
+          startIcon={<SearchIcon />}
+          sx={{ textTransform: 'none', px: 4, minWidth: 120 }}
+        >
+          Search
+        </Button>
+      </Box>
+      {validationError && (
+        <FormHelperText error sx={{ ml: 0 }}>
+          {validationError}
+        </FormHelperText>
+      )}
+    </Box>
   )
 }
 

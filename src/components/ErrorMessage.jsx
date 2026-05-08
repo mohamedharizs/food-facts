@@ -1,5 +1,13 @@
+import { Alert, Box } from '@mui/material'
+
 function ErrorMessage({ message }) {
-  return <div className="error-message" role="alert">{message}</div>
+  return (
+    <Box sx={{ mb: 3 }}>
+      <Alert severity="error" role="alert">
+        {message}
+      </Alert>
+    </Box>
+  )
 }
 
 export default ErrorMessage

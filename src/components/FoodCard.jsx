@@ -1,14 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+import { Card, CardActionArea, CardMedia, CardContent, Typography, Box, Chip } from '@mui/material'
 
 function FoodCard({ product }) {
-  const {
-    product_name,
-    brands,
-    nutriments,
-    image_small_url,
-    code,
-    quantity,
-  } = product
+  const { product_name, brands, nutriments, image_small_url, code, quantity } = product
 
   const navigate = useNavigate()
   const calories = nutriments?.['energy-kcal_100g'] ?? 'N/A'
@@ -23,39 +17,51 @@ function FoodCard({ product }) {
   }
 
   return (
-    <article className="food-card food-card-clickable" onClick={handleClick} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && handleClick()}>
-      {image_small_url ? (
-        <img
-          src={image_small_url}
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        '&:hover': {
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          transform: 'translateY(-4px)',
+          transition: 'all 0.2s ease-in-out',
+        },
+      }}
+    >
+      <CardActionArea onClick={handleClick} sx={{ flexGrow: 1 }}>
+        <CardMedia
+          component="img"
+          height="200"
+          image={image_small_url || '/food-placeholder.png'}
           alt={product_name || 'Food item image'}
-          className="food-image"
+          sx={{ objectFit: 'cover' }}
         />
-      ) : (
-        <div className="food-image-placeholder">No image available</div>
-      )}
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1 }}>
+            {product_name || 'Unknown Product'}
+          </Typography>
 
-      <div className="food-card-content">
-        <h2 className="product-name">{product_name || 'Unknown Product'}</h2>
-        <p className="product-brand">{brands ? `Brand: ${brands}` : 'Brand: Unknown'}</p>
-        {quantity && <p className="product-quantity">Size: {quantity}</p>}
-        {code && <p className="product-code">Barcode: {code}</p>}
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            {brands ? `Brand: ${brands}` : 'Brand: Unknown'}
+          </Typography>
 
-        <div className="nutrition-info">
-          <p>
-            <strong>Calories:</strong> {calories} kcal
-          </p>
-          <p>
-            <strong>Protein:</strong> {protein} g
-          </p>
-          <p>
-            <strong>Carbs:</strong> {carbs} g
-          </p>
-          <p>
-            <strong>Fat:</strong> {fat} g
-          </p>
-        </div>
-      </div>
-    </article>
+          {quantity && (
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Size: {quantity}
+            </Typography>
+          )}
+
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+            <Chip label={`${calories} kcal`} size="small" variant="outlined" />
+            <Chip label={`${protein}g protein`} size="small" variant="outlined" />
+            <Chip label={`${carbs}g carbs`} size="small" variant="outlined" />
+            <Chip label={`${fat}g fat`} size="small" variant="outlined" />
+          </Box>
+        </CardContent>
+      </CardActionArea>
+    </Card>
   )
 }
 

@@ -1,17 +1,37 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux'
 import axios from 'axios'
+import { addItem, removeItem } from '../store/savedSlice'
 import ErrorMessage from '../components/ErrorMessage'
+import NutritionRow from '../components/NutritionRow'
+import {
+  Container,
+  Paper,
+  Typography,
+  Button,
+  Grid,
+  Box,
+  CircularProgress,
+  Card,
+  CardMedia,
+  CardContent,
+} from '@mui/material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import BookmarkIcon from '@mui/icons-material/Bookmark'
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
 import './DetailPage.css'
 
-function DetailPage({ saved, dispatch }) {
+function DetailPage() {
   const { barcode } = useParams()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const isSaved = saved.some((item) => item.code === barcode)
+  const savedItems = useSelector((state) => state.saved.items)
+  const isSaved = savedItems.some((item) => item.code === barcode)
 
   useEffect(() => {
     let cancelled = false
@@ -70,95 +90,110 @@ function DetailPage({ saved, dispatch }) {
     }
 
     if (isSaved) {
-      dispatch({ type: 'REMOVE', code: barcode })
+      dispatch(removeItem(barcode))
     } else {
-      dispatch({ type: 'ADD', product })
+      dispatch(addItem(product))
     }
   }
 
   return (
-    <div className="app-container detail-page">
-      <div className="page-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-        <h2>Nutrition Detail</h2>
-      </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 3 }}>
+        Back
+      </Button>
 
-      {loading && <p className="status-message loading">Loading product details...</p>}
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
+        Nutrition Detail
+      </Typography>
+
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
       {error && <ErrorMessage message={error} />}
 
       {!loading && !error && product && (
-        <div className="detail-grid">
-          <div className="detail-sidebar">
-            {product.image_url ? (
-              <img
-                src={product.image_url}
+        <Grid container spacing={4}>
+          <Grid item xs={12} sm={6} md={4}>
+            <Card>
+              <CardMedia
+                component="img"
+                height="300"
+                image={product.image_url || '/food-placeholder.png'}
                 alt={product.product_name || 'Product image'}
-                className="detail-image"
+                sx={{ objectFit: 'cover' }}
               />
-            ) : (
-              <div className="detail-image-placeholder">No image available</div>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  {product.product_name || 'Unknown Product'}
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {product.brands || 'Brand Unknown'}
+                </Typography>
+
+                {product.quantity && (
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Size:</strong> {product.quantity}
+                  </Typography>
+                )}
+
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  <strong>Barcode:</strong> {product.code}
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleSaveClick}
+                  startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                  color={isSaved ? 'success' : 'primary'}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {isSaved ? 'Remove from Saved' : 'Save Product'}
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={8}>
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Nutrition Facts (per 100g)
+              </Typography>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                  gap: 2,
+                }}
+              >
+                <NutritionRow label="Calories" value={product.nutriments?.['energy-kcal_100g']} unit="kcal" />
+                <NutritionRow label="Protein" value={product.nutriments?.['proteins_100g']} unit="g" />
+                <NutritionRow label="Carbohydrates" value={product.nutriments?.['carbohydrates_100g']} unit="g" />
+                <NutritionRow label="Fat" value={product.nutriments?.['fat_100g']} unit="g" />
+                <NutritionRow label="Sugars" value={product.nutriments?.['sugars_100g']} unit="g" />
+                <NutritionRow label="Salt" value={product.nutriments?.['salt_100g']} unit="g" />
+                <NutritionRow label="Fiber" value={product.nutriments?.['fiber_100g']} unit="g" />
+                <NutritionRow label="Saturated fat" value={product.nutriments?.['saturated-fat_100g']} unit="g" />
+              </Box>
+            </Paper>
+
+            {product.generic_name && (
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Additional Information
+                </Typography>
+                <Typography variant="body1">{product.generic_name}</Typography>
+              </Paper>
             )}
-
-            <div className="detail-meta">
-              <h3>{product.product_name || 'Unknown Product'}</h3>
-              <p>{product.brands || 'Brand Unknown'}</p>
-              {product.quantity && <p>Size: {product.quantity}</p>}
-              <p>Barcode: {product.code}</p>
-              <button className="save-button" onClick={handleSaveClick}>
-                {isSaved ? 'Remove from Saved' : 'Save Product'}
-              </button>
-            </div>
-          </div>
-
-          <div className="detail-content">
-            <section className="nutrition-section">
-              <h3>Nutrition Facts (per 100g)</h3>
-              <div className="nutriment-grid">
-                <div>
-                  <strong>Calories:</strong>{' '}
-                  {product.nutriments?.['energy-kcal_100g'] ?? 'N/A'} kcal
-                </div>
-                <div>
-                  <strong>Protein:</strong>{' '}
-                  {product.nutriments?.['proteins_100g'] ?? 'N/A'} g
-                </div>
-                <div>
-                  <strong>Carbohydrates:</strong>{' '}
-                  {product.nutriments?.['carbohydrates_100g'] ?? 'N/A'} g
-                </div>
-                <div>
-                  <strong>Fat:</strong>{' '}
-                  {product.nutriments?.['fat_100g'] ?? 'N/A'} g
-                </div>
-                <div>
-                  <strong>Sugars:</strong>{' '}
-                  {product.nutriments?.['sugars_100g'] ?? 'N/A'} g
-                </div>
-                <div>
-                  <strong>Salt:</strong>{' '}
-                  {product.nutriments?.['salt_100g'] ?? 'N/A'} g
-                </div>
-                <div>
-                  <strong>Fiber:</strong>{' '}
-                  {product.nutriments?.['fiber_100g'] ?? 'N/A'} g
-                </div>
-                <div>
-                  <strong>Saturated fat:</strong>{' '}
-                  {product.nutriments?.['saturated-fat_100g'] ?? 'N/A'} g
-                </div>
-              </div>
-            </section>
-
-            <section className="detail-description">
-              <h3>Additional Information</h3>
-              <p>{product.generic_name || 'No additional description available.'}</p>
-            </section>
-          </div>
-        </div>
+          </Grid>
+        </Grid>
       )}
-    </div>
+    </Container>
   )
 }
 
